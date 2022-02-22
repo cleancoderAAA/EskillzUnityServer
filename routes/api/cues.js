@@ -18,27 +18,64 @@ const MarketContract = new web3.eth.Contract(MarketcontractABI,MarketcontractAdd
 const TokenContract = new web3.eth.Contract(NFTcontractABI,NFTcontractAddress);
 
 router.get('/getTokenURI', async function(req, res) {
-  let resVal =await TokenContract.methods.tokenURI(req.body.Id).call();
-  res.send(resVal);
+  let gameType = req.body.gameType;
+  let NFTType = req.body.NFTType;
+  var ID  = parseInt(req.body.Id);
+  if(gameType.trim().toLowerCase() == "pool"){
+    if(NFTType.trim().toLowerCase() == "cue"){
+      if(ID > 0){
+        let resVal =await TokenContract.methods.tokenURI(ID).call();
+        res.send(resVal);
+      }
+      else{
+        res.send("{}");
+      }      
+    }
+    else{
+      res.send("{}");
+    }
+  }
+  else{
+    res.send("{}");
+  }
+   
 });
 
 router.get('/fetchOfOwner', async function(req, res) {
-  let resVal =await MarketContract.methods.fetchAllItemsOfOwner(req.body.address).call();
-  const items = await Promise.all(resVal.map(async i => {
-    let item = {
-      // itemId: i.itemId,
-      lastPrice: i.lastPrice,
-      lastSeller: i.lastSeller,
-      // nftContract: i.nftContract,
-      onSale: i.onSale,
-      owner: i.owner,
-      prevOwners: i.prevOwners,
-      price: i.price,
-      tokenId: i.tokenId      
+  let gameType = req.body.gameType;
+  let NFTType = req.body.NFTType;
+  var address  = req.body.address;
+  if(gameType.trim().toLowerCase() == "pool"){
+    if(NFTType.trim().toLowerCase() == "cue"){
+      if(address.length == 42 && address.substring(0,2) == "0x"){
+        let resVal =await MarketContract.methods.fetchAllItemsOfOwner(req.body.address).call();
+        const items = await Promise.all(resVal.map(async i => {
+          let item = {
+            // itemId: i.itemId,
+            lastPrice: i.lastPrice,
+            lastSeller: i.lastSeller,
+            NFTContractAddress: i.nftContract,
+            onSale: i.onSale,
+            owner: i.owner,
+            prevOwners: i.prevOwners,
+            price: i.price,
+            tokenId: i.tokenId      
+          }
+          return item
+        })) 
+        res.send(items);
+      }
+      else{
+        res.send("{}");
+      }      
     }
-    return item
-  })) 
-  res.send(items);
+    else{
+      res.send("{}");
+    }
+  }
+  else{
+    res.send("{}");
+  }
 });
 
 router.get('/getBalance', async function(req, res) {
