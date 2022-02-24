@@ -23,7 +23,7 @@ app.use((req, res, next) => {
 
 
 // Define Routes
-app.use('/api/cues', require('./routes/api/cues'));
+app.use('/api/v1', require('./routes/api/cues'));
 //app.use('/api/wallet', require('./routes/api/wallet'));
 //app.use('/api/chalks', require('./routes/api/chalk'));
 //app.use('/api/halls', require('./routes/api/hall'));
