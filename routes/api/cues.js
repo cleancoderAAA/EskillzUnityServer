@@ -34,24 +34,35 @@ router.get('/fetchNftDetails', async function(req, res) {
   let gameType = req.body.gameType;
   let NFTType = req.body.NFTType;
   var ID  = parseInt(req.body.Id);
-  if(gameType.trim().toLowerCase() == "pool"){
-    if(NFTType.trim().toLowerCase() == "cue"){
-      if(ID > 0){
-        let resVal =await TokenContract.methods.tokenURI(ID).call();
-        let resJson = await axios.get(resVal);
-        res.send(JSON.stringify(resJson.data));
+  if(gameType == null || NFTType == null || ID == null){
+    res.send("{}");
+  }
+  else{
+    if(gameType.trim().toLowerCase() == "pool"){
+      if(NFTType.trim().toLowerCase() == "cue"){
+        if(ID > 0){
+          try{
+            let resVal =await TokenContract.methods.tokenURI(ID).call();
+            let resJson = await axios.get(resVal);
+            res.send(JSON.stringify(resJson.data));
+          }
+          catch{
+            res.send("{}");
+          }          
+        }
+        else{
+          res.send("{}");
+        }      
       }
       else{
         res.send("{}");
-      }      
+      }
     }
     else{
       res.send("{}");
     }
   }
-  else{
-    res.send("{}");
-  }
+  
    
 });
 
@@ -59,76 +70,117 @@ router.get('/fetchNFTList', async function(req, res) {
   let gameType = req.body.gameType;
   let NFTType = req.body.NFTType;
   var address  = req.body.address;
-  if(gameType.trim().toLowerCase() == "pool"){
-    if(NFTType.trim().toLowerCase() == "cue"){
-      if(address.length == 42 && address.substring(0,2) == "0x"){
-        let resVal =await MarketContract.methods.fetchAllItemsOfOwner(req.body.address).call();
-        const items = await Promise.all(resVal.map(async i => {
-          let item = {
-            // itemId: i.itemId,
-            lastPrice: i.lastPrice,
-            lastSeller: i.lastSeller,
-            NFTContractAddress: i.nftContract,
-            onSale: i.onSale,
-            owner: i.owner,
-            prevOwners: i.prevOwners,
-            price: i.price,
-            tokenId: i.tokenId      
+  if(gameType == null || NFTType == null||address == null){
+    res.send("{}");
+  }
+  else{
+    if(gameType.trim().toLowerCase() == "pool"){
+      if(NFTType.trim().toLowerCase() == "cue"){
+        if(address.length == 42 && address.substring(0,2) == "0x"){
+          try{
+            let resVal =await MarketContract.methods.fetchAllItemsOfOwner(req.body.address).call();
+            const items = await Promise.all(resVal.map(async i => {
+              let item = {
+                // itemId: i.itemId,
+                lastPrice: i.lastPrice,
+                lastSeller: i.lastSeller,
+                NFTContractAddress: i.nftContract,
+                onSale: i.onSale,
+                owner: i.owner,
+                prevOwners: i.prevOwners,
+                price: i.price,
+                tokenId: i.tokenId      
+              }
+              return item
+            })) 
+            res.send(items);
           }
-          return item
-        })) 
-        res.send(items);
+          catch{
+            res.send("{}");
+          }
+          
+        }
+        else{
+          res.send("{}");
+        }      
       }
       else{
         res.send("{}");
-      }      
+      }
     }
     else{
       res.send("{}");
     }
   }
-  else{
-    res.send("{}");
-  }
+  
 });
 
 router.get('/getETHBalance', async function(req, res) {
   var address  = req.body.address;
-  if(address.length == 42 && address.substring(0,2) == "0x"){
-    let resVal =await web3.eth.getBalance(req.body.address);
-    let realETHVal = Number(resVal)/10**18;
-    res.send(String(realETHVal));
+  if(address == null){
+    res.send("{}");
   }
   else{
-    res.send("{}");
+    if(address.length == 42 && address.substring(0,2) == "0x"){
+      try{
+        let resVal =await web3.eth.getBalance(req.body.address);
+        let realETHVal = Number(resVal)/10**18;
+        res.send(String(realETHVal));
+      }
+      catch{
+        res.send("{}");
+      }    
+    }
+    else{
+      res.send("{}");
+    }
   }
   
 });
 
 router.get('/getSPORTBalance', async function(req, res) {
   var address  = req.body.address;
-  
-  if(address.length == 42 && address.substring(0,2) == "0x"){
-    let resVal =await sportContract.methods.balanceOf(req.body.address).call();
-    let realSportVal = Number(resVal)/10**9;
-    res.send(String(realSportVal));
+  if(address == null){
+    res.send("{}");
   }
   else{
-    res.send("{}");
+    if(address.length == 42 && address.substring(0,2) == "0x"){
+      try{
+        let resVal =await sportContract.methods.balanceOf(req.body.address).call();
+        let realSportVal = Number(resVal)/10**9;
+        res.send(String(realSportVal));
+      }
+      catch{
+        res.send("{}");
+      }
+      
+    }
+    else{
+      res.send("{}");
+    }
   }
   
 });
 
 router.get('/getESGBalance', async function(req, res) {
   var address  = req.body.address;
-  
-  if(address.length == 42 && address.substring(0,2) == "0x"){
-    let resVal =await esgContract.methods.balanceOf(req.body.address).call();
-    let realEsgVal = Number(resVal)/10**9;
-    res.send(String(realEsgVal));
+  if(address == null){
+    res.send("{}");
   }
   else{
-    res.send("{}");
+    if(address.length == 42 && address.substring(0,2) == "0x"){
+      try{
+        let resVal =await esgContract.methods.balanceOf(req.body.address).call();
+        let realEsgVal = Number(resVal)/10**9;
+        res.send(String(realEsgVal));
+      }
+      catch{
+        res.send("{}");
+      }      
+    }
+    else{
+      res.send("{}");
+    }
   }
   
 });
