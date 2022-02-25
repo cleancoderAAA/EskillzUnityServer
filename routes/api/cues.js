@@ -30,7 +30,7 @@ var minABI = [
 ];
 var sportContract = new web3.eth.Contract(minABI, SportTokenAddress);
 var esgContract = new web3.eth.Contract(minABI, EsgTokenAddress);
-router.get('/fetchNftDetails', async function(req, res) {
+router.post('/fetchNftDetails', async function(req, res) {
   let gameType = req.body.gameType;
   let NFTType = req.body.NFTType;
   var ID  = parseInt(req.body.Id);
@@ -66,7 +66,7 @@ router.get('/fetchNftDetails', async function(req, res) {
    
 });
 
-router.get('/fetchNFTList', async function(req, res) {
+router.post('/fetchNFTList', async function(req, res) {
   let gameType = req.body.gameType;
   let NFTType = req.body.NFTType;
   var address  = req.body.address;
@@ -115,7 +115,7 @@ router.get('/fetchNFTList', async function(req, res) {
   
 });
 
-router.get('/getETHBalance', async function(req, res) {
+router.post('/getETHBalance', async function(req, res) {
   var address  = req.body.address;
   if(address == null){
     res.send("{}");
@@ -138,7 +138,7 @@ router.get('/getETHBalance', async function(req, res) {
   
 });
 
-router.get('/getSPORTBalance', async function(req, res) {
+router.post('/getSPORTBalance', async function(req, res) {
   var address  = req.body.address;
   if(address == null){
     res.send("{}");
@@ -162,7 +162,7 @@ router.get('/getSPORTBalance', async function(req, res) {
   
 });
 
-router.get('/getESGBalance', async function(req, res) {
+router.post('/getESGBalance', async function(req, res) {
   var address  = req.body.address;
   if(address == null){
     res.send("{}");
