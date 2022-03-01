@@ -7,6 +7,14 @@ const normalize = require('normalize-url');
 const { ethers } = require('ethers');
 const { useState } = require('react');
 require('dotenv').config();
+const IpfsHttpClient = require("ipfs-http-client");
+const ipfsC = IpfsHttpClient.create({
+  host: "ipfs.infura.io",
+  port: "5001",
+  protocol: "https",
+});
+const IPFS = require('ipfs-core');
+
 const infuraKey = process.env.REACT_INFURA_KEY;
 const NFTcontractAddress = process.env.NFT_CONTRACT_ADDRESS;
 const MarketcontractAddress = process.env.MARKET_CONTRACT_ADDRESS;
@@ -65,6 +73,138 @@ router.post('/fetchNftDetails', async function(req, res) {
   
    
 });
+
+router.post('/getUpdatedTokenURI', async function(req, res) {
+
+  let gameType = req.body.gameType;
+  let NFTType = req.body.NFTType;
+  var ID  = parseInt(req.body.Id);
+  let level = req.body.level;
+  let strength = req.body.strength;
+  let accuracy = req.body.accuracy;
+  let control = req.body.control;
+  let FIDC = req.body.FIDC;
+
+  const metadata = new Object();
+  if(gameType == null || NFTType == null || ID == null){
+    res.send("{}");
+  }
+  else{
+    if(gameType.trim().toLowerCase() == "pool"){
+      if(NFTType.trim().toLowerCase() == "cue"){
+        if(ID > 0){
+          try{
+            let resVal =await TokenContract.methods.tokenURI(ID).call();
+            let origin = await axios.get(resVal);            
+            metadata.name = origin.data.name;
+            metadata.image_url = origin.data.image_url;
+            metadata.description = origin.data.description;  
+            if(level !=null){
+              metadata.level = level;
+            }
+            else{
+              if(origin.data.level !=null){
+                metadata.level = origin.data.level;
+              }
+              else{
+                metadata.level = "0";
+              }
+            }
+            if(strength !=null){
+              metadata.strength = strength;
+            }
+            else{
+              if(origin.data.strength !=null){
+                metadata.strength = origin.data.strength;
+              }
+              else{
+                metadata.strength = "0";
+              }              
+            }
+            if(accuracy !=null){
+              metadata.accuracy = accuracy;
+            }
+            else{
+              if(origin.data.accuracy !=null){
+                metadata.accuracy = origin.data.accuracy;
+              }
+              else{
+                metadata.accuracy = "0";
+              } 
+            }
+            if(control !=null){
+              metadata.control = control;
+            }
+            else{
+              if(origin.data.control !=null){
+                metadata.control = origin.data.control;
+              }
+              else{
+                metadata.control = "0";
+              } 
+            }
+            if(FIDC !=null){
+              metadata.FIDC = FIDC;
+            }
+            else{
+              if(origin.data.FIDC !=null){
+                metadata.FIDC = origin.data.FIDC;
+              }
+              else{
+                metadata.FIDC = "0";
+              } 
+            }
+            const pinataResponse = await pinJSONToIPFS(metadata);
+            if (!pinataResponse.success) {
+              res.send("{}");         
+            } 
+            else{
+              res.send(pinataResponse.pinataUrl); 
+            }
+          }
+          catch{
+            res.send("{}");
+          }          
+        }
+        else{
+          res.send("{}");
+        }      
+      }
+      else{
+        res.send("{}");
+      }
+    }
+    else{
+      res.send("{}");
+    }
+  };    
+});
+
+const pinJSONToIPFS = async(JSONBody) => {
+  const url = `https://api.pinata.cloud/pinning/pinJSONToIPFS`;
+  //making axios POST request to Pinata ⬇️
+  return axios 
+      .post(url, JSONBody, {
+          headers: {
+              pinata_api_key: "238047f870c7ab07af4b",
+              pinata_secret_api_key: "1b57450a5dc199dd620cca759bf665c8abc323278469baf2368cb3d8372d9a6f",
+          }
+      })
+      .then(function (response) {
+         return {
+             success: true,
+             pinataUrl: "https://gateway.pinata.cloud/ipfs/" + response.data.IpfsHash
+         };
+      })
+      .catch(function (error) {
+          console.log(error)
+          return {
+              success: false,
+              message: error.message,
+          }
+
+      });
+};
 
 router.post('/fetchNFTList', async function(req, res) {
   let gameType = req.body.gameType;
