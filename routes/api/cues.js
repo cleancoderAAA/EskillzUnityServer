@@ -18,14 +18,20 @@ const IPFS = require('ipfs-core');
 const infuraKey = process.env.REACT_INFURA_KEY;
 const NFTcontractAddress = process.env.NFT_CONTRACT_ADDRESS;
 const MarketcontractAddress = process.env.MARKET_CONTRACT_ADDRESS;
+const CARDNFTcontractAddress = process.env.CARD_NFT_CONTRACT_ADDRESS;
+const CARDMarketcontractAddress = process.env.CARD_MARKET_CONTRACT_ADDRESS;
 const SportTokenAddress = process.env.SPORT_TOKEN_ADDRESS;
 const EsgTokenAddress = process.env.ESG_TOKEN_ADDRESS;
 const NFTcontractABI = require('../../abi/NFT.json');
 const MarketcontractABI = require('../../abi/Marketplace.json');
+const CardNFTcontractABI = require('../../abi/NFT_CARD.json');
+const CardMarketcontractABI = require('../../abi/Marketplace_CARD.json');
 const Web3 = require("web3");
 let web3 = new Web3(new Web3.providers.WebsocketProvider(infuraKey));
 const MarketContract = new web3.eth.Contract(MarketcontractABI,MarketcontractAddress);
 const TokenContract = new web3.eth.Contract(NFTcontractABI,NFTcontractAddress);
+const CardMarketContract = new web3.eth.Contract(CardMarketcontractABI,CARDMarketcontractAddress);
+const CardTokenContract = new web3.eth.Contract(CardNFTcontractABI,CARDNFTcontractAddress);
 var minABI = [
   // balanceOf
   {
@@ -62,6 +68,21 @@ router.post('/fetchNftDetails', async function(req, res) {
           res.send("{}");
         }      
       }
+      else if(NFTType.trim().toLowerCase() == "card"){
+        if(ID > 0){
+          try{
+            let resVal =await CardTokenContract.methods.tokenURI(ID).call();
+            let resJson = await axios.get(resVal);
+            res.send(JSON.stringify(resJson.data));
+          }
+          catch{
+            res.send("{}");
+          }          
+        }
+        else{
+          res.send("{}");
+        }      
+      }
       else{
         res.send("{}");
       }
@@ -80,10 +101,11 @@ router.post('/getUpdatedTokenURI', async function(req, res) {
   let NFTType = req.body.NFTType;
   var ID  = parseInt(req.body.Id);
   let level = req.body.level;
+  let yieldBonus = req.body.yieldBonus;
   let strength = req.body.strength;
   let accuracy = req.body.accuracy;
   let control = req.body.control;
-  let FIDC = req.body.FIDC;
+  let freeItemDropChance = req.body.freeItemDropChance;
 
   const metadata = new Object();
   if(gameType == null || NFTType == null || ID == null){
@@ -143,15 +165,94 @@ router.post('/getUpdatedTokenURI', async function(req, res) {
                 metadata.control = "0";
               } 
             }
-            if(FIDC !=null){
-              metadata.FIDC = FIDC;
+            if(freeItemDropChance !=null){
+              metadata.freeItemDropChance = freeItemDropChance;
             }
             else{
-              if(origin.data.FIDC !=null){
-                metadata.FIDC = origin.data.FIDC;
+              if(origin.data.freeItemDropChance !=null){
+                metadata.freeItemDropChance = origin.data.freeItemDropChance;
               }
               else{
-                metadata.FIDC = "0";
+                metadata.freeItemDropChance = "0";
+              } 
+            }
+            const pinataResponse = await pinJSONToIPFS(metadata);
+            if (!pinataResponse.success) {
+              res.send("{}");         
+            } 
+            else{
+              res.send(pinataResponse.pinataUrl); 
+            }
+          }
+          catch{
+            res.send("{}");
+          }          
+        }
+        else{
+          res.send("{}");
+        }      
+      }
+      else if(NFTType.trim().toLowerCase() == "card"){
+        if(ID > 0){
+          try{
+            let resVal =await CardTokenContract.methods.tokenURI(ID).call();
+            let origin = await axios.get(resVal);            
+            metadata.name = origin.data.name;
+            metadata.image_url = origin.data.image_url;
+            metadata.description = origin.data.description;  
+            if(yieldBonus !=null){
+              metadata.yieldBonus = yieldBonus;
+            }
+            else{
+              if(origin.data.yieldBonus !=null){
+                metadata.yieldBonus = origin.data.yieldBonus;
+              }
+              else{
+                metadata.yieldBonus = "0";
+              }
+            }
+            if(strength !=null){
+              metadata.strength = strength;
+            }
+            else{
+              if(origin.data.strength !=null){
+                metadata.strength = origin.data.strength;
+              }
+              else{
+                metadata.strength = "0";
+              }              
+            }
+            if(accuracy !=null){
+              metadata.accuracy = accuracy;
+            }
+            else{
+              if(origin.data.accuracy !=null){
+                metadata.accuracy = origin.data.accuracy;
+              }
+              else{
+                metadata.accuracy = "0";
+              } 
+            }
+            if(control !=null){
+              metadata.control = control;
+            }
+            else{
+              if(origin.data.control !=null){
+                metadata.control = origin.data.control;
+              }
+              else{
+                metadata.control = "0";
+              } 
+            }
+            if(freeItemDropChance !=null){
+              metadata.freeItemDropChance = freeItemDropChance;
+            }
+            else{
+              if(origin.data.freeItemDropChance !=null){
+                metadata.freeItemDropChance = origin.data.freeItemDropChance;
+              }
+              else{
+                metadata.freeItemDropChance = "0";
               } 
             }
             const pinataResponse = await pinJSONToIPFS(metadata);
@@ -219,6 +320,35 @@ router.post('/fetchNFTList', async function(req, res) {
         if(address.length == 42 && address.substring(0,2) == "0x"){
           try{
             let resVal =await MarketContract.methods.fetchAllItemsOfOwner(req.body.address).call();
+            const items = await Promise.all(resVal.map(async i => {
+              let item = {
+                // itemId: i.itemId,
+                lastPrice: i.lastPrice,
+                lastSeller: i.lastSeller,
+                NFTContractAddress: i.nftContract,
+                onSale: i.onSale,
+                owner: i.owner,
+                prevOwners: i.prevOwners,
+                price: i.price,
+                tokenId: i.tokenId      
+              }
+              return item
+            })) 
+            res.send(items);
+          }
+          catch{
+            res.send("{}");
+          }
+          
+        }
+        else{
+          res.send("{}");
+        }      
+      }
+      else if(NFTType.trim().toLowerCase() == "card"){
+        if(address.length == 42 && address.substring(0,2) == "0x"){
+          try{
+            let resVal =await CardMarketContract.methods.fetchAllItemsOfOwner(req.body.address).call();
             const items = await Promise.all(resVal.map(async i => {
               let item = {
                 // itemId: i.itemId,
