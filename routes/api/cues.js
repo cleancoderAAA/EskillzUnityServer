@@ -281,6 +281,163 @@ router.post('/getUpdatedTokenURI', async function(req, res) {
   };    
 });
 
+router.post('/getTokenURI', async function(req, res) {
+
+  let gameType = req.body.gameType;
+  let NFTType = req.body.NFTType;
+  let name = req.body.name;
+  let description = req.body.description;
+  let image_url = req.body.image_url;
+  let level = req.body.level;
+  let yieldBonus = req.body.yieldBonus;
+  let strength = req.body.strength;
+  let accuracy = req.body.accuracy;
+  let control = req.body.control;
+  let freeItemDropChance = req.body.freeItemDropChance;
+
+  const metadata = new Object();
+  if(gameType == null || NFTType == null){
+    res.send("{}");
+  }
+  else{
+    if(gameType.trim().toLowerCase() == "pool"){
+      if(NFTType.trim().toLowerCase() == "cue"){
+          try{  
+            if(name !=null){
+              metadata.name = name;
+            }
+            else{
+              metadata.name = "";
+            }   
+            if(description !=null){
+              metadata.description = description;
+            }
+            else{
+              metadata.description = "";
+            }                
+            if(image_url !=null){
+              metadata.image_url = image_url;
+            }
+            else{
+              metadata.image_url = "";
+            }
+            if(level !=null){
+              metadata.level = level;
+            }
+            else{
+              metadata.level = "0";
+            }
+            if(strength !=null){
+              metadata.strength = strength;
+            }
+            else{
+              metadata.strength = "0";         
+            }
+            if(accuracy !=null){
+              metadata.accuracy = accuracy;
+            }
+            else{
+              metadata.accuracy = "0";
+            }
+            if(control !=null){
+              metadata.control = control;
+            }
+            else{
+              metadata.control = "0";
+            }
+            if(freeItemDropChance !=null){
+              metadata.freeItemDropChance = freeItemDropChance;
+            }
+            else{
+              metadata.freeItemDropChance = "0";
+            }
+            const pinataResponse = await pinJSONToIPFS(metadata);
+            if (!pinataResponse.success) {
+              res.send("{}");         
+            } 
+            else{
+              res.send(pinataResponse.pinataUrl); 
+            }
+          }
+          catch{
+            res.send("{}");
+          }          
+             
+      }
+      else if(NFTType.trim().toLowerCase() == "card"){
+          try{
+              
+            if(name !=null){
+              metadata.name = name;
+            }
+            else{
+              metadata.name = "";
+            }   
+            if(description !=null){
+              metadata.description = description;
+            }
+            else{
+              metadata.description = "";
+            }                
+            if(image_url !=null){
+              metadata.image_url = image_url;
+            }
+            else{
+              metadata.image_url = "";
+            }
+            if(yieldBonus !=null){
+              metadata.yieldBonus = yieldBonus;
+            }
+            else{
+              metadata.yieldBonus = "0";
+            }
+            if(strength !=null){
+              metadata.strength = strength;
+            }
+            else{
+              metadata.strength = "0";         
+            }
+            if(accuracy !=null){
+              metadata.accuracy = accuracy;
+            }
+            else{
+              metadata.accuracy = "0";
+            }
+            if(control !=null){
+              metadata.control = control;
+            }
+            else{
+              metadata.control = "0";
+            }
+            if(freeItemDropChance !=null){
+              metadata.freeItemDropChance = freeItemDropChance;
+            }
+            else{
+              metadata.freeItemDropChance = "0";
+            }
+            const pinataResponse = await pinJSONToIPFS(metadata);
+            if (!pinataResponse.success) {
+              res.send("{}");         
+            } 
+            else{
+              res.send(pinataResponse.pinataUrl); 
+            }
+          }
+          catch{
+            res.send("{}");
+          }          
+            
+      }
+      else{
+        res.send("{}");
+      }
+    }
+    else{
+      res.send("{}");
+    }
+  };    
+});
+
 const pinJSONToIPFS = async(JSONBody) => {
   const url = `https://api.pinata.cloud/pinning/pinJSONToIPFS`;
   //making axios POST request to Pinata ⬇️
