@@ -27,7 +27,14 @@ const MarketcontractABI = require('../../abi/Marketplace.json');
 const CardNFTcontractABI = require('../../abi/NFT_CARD.json');
 const CardMarketcontractABI = require('../../abi/Marketplace_CARD.json');
 const Web3 = require("web3");
-let web3 = new Web3(new Web3.providers.WebsocketProvider(infuraKey));
+if (typeof web3 !== 'undefined') {
+  var web3 = new Web3(web3.currentProvider);
+  console.log("undefined");
+} else {
+  var web3 = new Web3(new Web3.providers.HttpProvider(infuraKey));
+  console.log("defined");
+}
+//let web3 = new Web3(new Web3.providers.WebsocketProvider(infuraKey));
 const MarketContract = new web3.eth.Contract(MarketcontractABI,MarketcontractAddress);
 const TokenContract = new web3.eth.Contract(NFTcontractABI,NFTcontractAddress);
 const CardMarketContract = new web3.eth.Contract(CardMarketcontractABI,CARDMarketcontractAddress);
